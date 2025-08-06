@@ -64,8 +64,8 @@ PUT /transactions/{id}: Update description with concurrency control
 
 ---
 ## Diagrams
-✅ Class Diagram — [link or embedded image]
-✅ Activity Diagram — [link or embedded image]
+✅ Class Diagram — src/main/resources/docs/class_diagram_system_structure.png
+✅ Activity Diagram — src/main/resources/docs/activity_diargam_file_processing.png
 
 ---
 ## ✍️ Author
