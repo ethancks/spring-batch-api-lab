@@ -3,6 +3,8 @@ package com.job.lab.batchprocessor.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.job.lab.batchprocessor.dto.TransactionDTO;
 import com.job.lab.batchprocessor.service.TransactionService;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -11,6 +13,7 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
@@ -48,10 +51,12 @@ class TransactionControllerTest {
 
     private TransactionDTO mockDTO;
 
+    private long TEST_ID = 1L;
+
     @BeforeEach
     void setup() {
         mockDTO = TransactionDTO.builder()
-                .id(1L)
+                .id(TEST_ID)
                 .accountNumber("1234567890")
                 .trxAmount(new BigDecimal("99.99"))
                 .description("Mock Desc")
@@ -79,14 +84,40 @@ class TransactionControllerTest {
     @Test
     void testUpdateDescription() throws Exception {
         mockDTO.setDescription("Updated Desc");
-        Mockito.when(transactionService.updateDescription(eq(1L), eq("Updated Desc"), eq(0)))
+        Mockito.when(transactionService.updateDescription(eq(TEST_ID), eq("Updated Desc"), eq(0)))
                 .thenReturn(mockDTO);
 
-        mockMvc.perform(put("/transactions/1")
+        mockMvc.perform(put("/transactions/{id}", TEST_ID)
                         .param("description", "Updated Desc")
                         .param("version", "0")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description", is("Updated Desc")));
     }
+
+    // Error scenario
+    @Test
+    void testUpdateTransactionConflict() throws Exception {
+        Mockito.when(transactionService.updateDescription(eq(TEST_ID), eq("Updated Desc"), eq(1)))
+                .thenThrow(new OptimisticLockException("Conflict occurred"));
+
+        mockMvc.perform(put("/transactions/{id}", TEST_ID)
+                        .param("version", "1")
+                        .param("description", "Updated Desc")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void testUpdateTransactionNotFound() throws Exception {
+        Mockito.when(transactionService.updateDescription(eq(TEST_ID), eq("Updated Desc"), eq(1)))
+                .thenThrow(new EntityNotFoundException("Not found"));
+
+        mockMvc.perform(put("/transactions/{id}", TEST_ID)
+                        .param("version", "1")
+                        .param("description", "Updated Desc")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
 }

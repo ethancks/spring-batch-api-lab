@@ -3,6 +3,7 @@ package com.job.lab.batchprocessor.service;
 import com.job.lab.batchprocessor.dto.TransactionDTO;
 import com.job.lab.batchprocessor.model.Transaction;
 import com.job.lab.batchprocessor.repository.TransactionRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,13 +49,27 @@ class TransactionServiceTest {
         Transaction trx = mockTransaction(1L, 0);
         Page<Transaction> page = new PageImpl<>(List.of(trx));
 
-        when(transactionRepository.search(anyString(), anyString(), anyString(), any(Pageable.class))
-        ).thenReturn(page);
+        when(transactionRepository.search(anyString(), isNull(), isNull(), any(Pageable.class))).thenReturn(page);
 
         Page<TransactionDTO> result = transactionService.search("CUST", null, null, 0, 10);
 
         assertEquals(1, result.getTotalElements());
         assertEquals("CUST001", result.getContent().get(0).getCustomerId());
+    }
+
+    @Test
+    void testSearch_withAllParams_sortedByTrxDateDesc() {
+        List<Transaction> data = List.of(new Transaction());
+        Page<Transaction> page = new PageImpl<>(data);
+
+        Mockito.when(transactionRepository.search(
+                        eq("C1"), eq("A1"), eq("Desc"), any(Pageable.class)))
+                .thenReturn(page);
+
+        Page<TransactionDTO> result = transactionService.search("C1", "A1", "Desc", 0, 10);
+
+        assertEquals(1, result.getTotalElements());
+        verify(transactionRepository).search("C1", "A1", "Desc", PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC,"trxDate")));
     }
 
     @Test
@@ -66,6 +81,12 @@ class TransactionServiceTest {
         TransactionDTO updated = transactionService.updateDescription(1L, "New Desc", 0);
 
         assertEquals("New Desc", updated.getDescription());
+    }
+
+    @Test
+    void testUpdateTransaction_notFound() {
+        Mockito.when(transactionRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> transactionService.updateDescription(1L, "Should fail", 1));
     }
 
     @Test

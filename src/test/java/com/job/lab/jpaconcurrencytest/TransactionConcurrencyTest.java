@@ -12,6 +12,9 @@ import org.springframework.test.context.ContextConfiguration;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+// @DataJpaTest only initialize JPA related component by default, but the test loads entire application context.
+// This including the @Autowired Job in BatchProcessorApplication, to avoid injection issue we have to move this test class away
+// from the root package where @SpringBootApplication may trigger component scanning
 @DataJpaTest
 @ContextConfiguration(classes = TestJpaConfig.class)
 public class TransactionConcurrencyTest {

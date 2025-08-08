@@ -1,6 +1,7 @@
 # Spring Batch File Processor & RESTful API
 
-This is a Spring Boot project developed for a technical assessment. It processes a transaction data file using Spring Batch and exposes a RESTful API to retrieve and update transaction records.
+This is a Spring Boot project developed for a technical assessment. 
+It processes a transaction data file using Spring Batch and exposes a RESTful API to retrieve and update transaction records.
 
 ---
 
@@ -15,23 +16,6 @@ This is a Spring Boot project developed for a technical assessment. It processes
 
 ---
 
-## 📁 File Structure
-src
-└── main
-├── java
-│ └── com.job.lab.transaction
-│ ├── batch # Spring Batch job configs
-│ ├── controller # REST API controllers
-│ ├── model # Entity classes
-│ ├── repository # Spring Data JPA interfaces
-│ ├── service # Business logic
-│ └── config # App and batch configurations
-└── resources
-├── application.yml
-└── data/input/Assessment_Data_Source.txt
-
----
-
 ## Tech Stack
 
 - Java 17
@@ -41,6 +25,13 @@ src
 - H2 Database
 - Lombok
 - JUnit 5 + Mockito
+- PlantUML for diagrams
+
+---
+## Diagrams
+✅ Job Batch Diagram<br> ![Job Batch Diagram](src/main/resources/docs/class_diagram_batch_structure.png)
+✅ Controller-Service-Model Diagram<br> ![Controller-Service-Model Diagram](src/main/resources/docs/class_diagram_controller_service_model.png)
+✅ Activity Diagram!<br> ![Activity Diagram](src/main/resources/docs/activity_diagram_file_processing.png)
 
 ---
 
@@ -48,24 +39,40 @@ src
 
 1. Clone the repo:
    ```bash
-   git clone https://github.com/ethancks/spring-batch-api-lab.git
-   cd spring-batch-api-lab.git
-2. Open in your IDE
+   git clone  https://github.com/ethancks/spring-batch-api-lab.git
+   cd spring-batch-api-lab
+2. Open in your IDE, or Git Bash application
 3. Run the Spring Boot application:
-   ./mvnw spring-boot:run
-4. Access H2 Console:
-   http://localhost:8080/h2-console
+    ```bash
+    ./mvnw spring-boot:run
+    ./mvnw clean install
+4. Access H2 Console:   http://localhost:8080/h2-console
+    ```bash
+    JDBC URL: jdbc:h2:mem:testdb
+    Username: sa
+    Password: (leave empty)
 
 ---
 ## API Endpoints (to be added)
-GET /transactions: Retrieve records (supports pagination and filtering)
+1. Search Transactions - customerId, accountNumber, description, page, size<br>
+    ```bash
+    curl -X GET "http://localhost:8080/transactions?customerId=222" -H "accept: application/json"
+    curl -X GET "http://localhost:8080/transactions?customerId=222&description=ATM%20WITHDRWAL" -H "accept: application/json"
 
-PUT /transactions/{id}: Update description with concurrency control
+2. Update Transaction description - field `Version` must be match with DB entry
+    ```bash
+   curl -X PUT "http://localhost:8080/transactions/1?description=Updated+Note1&version=0"
 
 ---
-## Diagrams
-✅ Class Diagram — src/main/resources/docs/class_diagram_system_structure.png
-✅ Activity Diagram — src/main/resources/docs/activity_diargam_file_processing.png
+## Running Tests
+```bash
+./mvnw test
+```
+Test coverage includes:
+- Unit tests for Service layer
+- Unit tests for Controller layer (MockMvc)
+- Integration test for Batch job
+- Concurrency conflict test for optimistic locking
 
 ---
 ## ✍️ Author

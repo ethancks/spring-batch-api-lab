@@ -3,6 +3,7 @@ package com.job.lab.batchprocessor.service;
 import com.job.lab.batchprocessor.dto.TransactionDTO;
 import com.job.lab.batchprocessor.model.Transaction;
 import com.job.lab.batchprocessor.repository.TransactionRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,7 +28,7 @@ public class TransactionService {
 
     public TransactionDTO updateDescription(Long id, String description, Integer version) {
         Transaction entity = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
 
         if (!entity.getVersion().equals(version)) {
             throw new OptimisticLockException("Record was modified by another transaction");
