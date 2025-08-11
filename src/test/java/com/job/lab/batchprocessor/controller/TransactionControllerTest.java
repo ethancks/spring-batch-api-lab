@@ -73,7 +73,7 @@ class TransactionControllerTest {
         Mockito.when(transactionService.search(isNull(), isNull(),isNull(), anyInt(), anyInt()))
                 .thenReturn(page);
 
-        mockMvc.perform(get("/transactions")
+        mockMvc.perform(get("/api/v1/transactions")
                         .param("page", "0")
                         .param("size", "5"))
                 .andExpect(status().isOk())
@@ -87,7 +87,7 @@ class TransactionControllerTest {
         Mockito.when(transactionService.updateDescription(eq(TEST_ID), eq("Updated Desc"), eq(0)))
                 .thenReturn(mockDTO);
 
-        mockMvc.perform(put("/transactions/{id}", TEST_ID)
+        mockMvc.perform(put("/api/v1/transactions/{id}", TEST_ID)
                         .param("description", "Updated Desc")
                         .param("version", "0")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -101,7 +101,7 @@ class TransactionControllerTest {
         Mockito.when(transactionService.updateDescription(eq(TEST_ID), eq("Updated Desc"), eq(1)))
                 .thenThrow(new OptimisticLockException("Conflict occurred"));
 
-        mockMvc.perform(put("/transactions/{id}", TEST_ID)
+        mockMvc.perform(put("/api/v1/transactions/{id}", TEST_ID)
                         .param("version", "1")
                         .param("description", "Updated Desc")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -113,7 +113,7 @@ class TransactionControllerTest {
         Mockito.when(transactionService.updateDescription(eq(TEST_ID), eq("Updated Desc"), eq(1)))
                 .thenThrow(new EntityNotFoundException("Not found"));
 
-        mockMvc.perform(put("/transactions/{id}", TEST_ID)
+        mockMvc.perform(put("/api/v1/transactions/{id}", TEST_ID)
                         .param("version", "1")
                         .param("description", "Updated Desc")
                         .contentType(MediaType.APPLICATION_JSON))
